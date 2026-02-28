@@ -2,6 +2,7 @@
   "name": "webapp",
   "type": "module",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "preview": "wrangler pages dev",

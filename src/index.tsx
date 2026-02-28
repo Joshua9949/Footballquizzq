@@ -18,12 +18,18 @@ const app = new Hono<{ Bindings: Bindings }>()
 const DEFAULT_GENLAYER_CONTRACT = '0x688AA322f581Db6677aa06B80c04C66Bc72E1102'
 
 function getGenLayerConfig(c: any) {
+  const processEnv =
+    (globalThis as {
+      process?: { env?: Record<string, string | undefined> }
+    }).process?.env ?? {}
   const privateKey =
     c.env?.VITE_GENLAYER_KEY ||
+    processEnv.VITE_GENLAYER_KEY ||
     (globalThis as any).VITE_GENLAYER_KEY ||
     ''
   const contractAddress =
     c.env?.GENLAYER_CONTRACT_ADDRESS ||
+    processEnv.GENLAYER_CONTRACT_ADDRESS ||
     (globalThis as any).GENLAYER_CONTRACT_ADDRESS ||
     DEFAULT_GENLAYER_CONTRACT
   return { privateKey, contractAddress }

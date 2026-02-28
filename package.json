@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "hono": "^4.12.2",
+    "@hono/node-server": "^1.19.9",
     "genlayer-js": "^0.19.0"
   },
   "devDependencies": {

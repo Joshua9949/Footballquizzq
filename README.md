@@ -117,6 +117,22 @@ Deploy example:
 npx wrangler pages deploy dist --project-name footballiq
 ```
 
+### Vercel
+- Runtime: Node.js Function (`api/[[...route]].ts`)
+- Static assets: served from `public/static`
+- Routing: `vercel.json` rewrites all non-filesystem routes to the Hono function
+
+Required Vercel environment variables:
+```bash
+VITE_GENLAYER_KEY=0xYOUR_PRIVATE_KEY
+GENLAYER_CONTRACT_ADDRESS=0x688AA322f581Db6677aa06B80c04C66Bc72E1102
+```
+
+Recommended Vercel build settings:
+- Install command: `pnpm install` (or `npm install`)
+- Build command: `pnpm build` (or `npm run build`)
+- Output directory: leave empty (Functions + `public/` static files)
+
 ## Project Structure
 ```text
 football-quizz/
@@ -125,6 +141,8 @@ football-quizz/
 ├── public/static/
 │   ├── app.js
 │   └── styles.css
+├── api/
+│   └── [[...route]].ts
 ├── src/
 │   ├── data/questions.ts
 │   ├── genlayer.ts
@@ -132,6 +150,7 @@ football-quizz/
 │   └── renderer.tsx
 ├── .env.example
 ├── package.json
+├── vercel.json
 ├── vite.config.ts
 └── wrangler.jsonc
 ```

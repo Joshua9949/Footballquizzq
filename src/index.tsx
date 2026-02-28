@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { serveStatic } from 'hono/cloudflare-workers'
 import { quizData, getQuestions, leagues, popularPlayers } from './data/questions'
 import {
   runCategoryQuizContract,
@@ -423,9 +422,6 @@ function generateFallbackPlayerQuiz(playerName: string, difficulty: string) {
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5)
 }
-
-// Serve static files
-app.use('/static/*', serveStatic({ root: './public' }))
 
 // Main page - serve the SPA
 app.get('*', (c) => {

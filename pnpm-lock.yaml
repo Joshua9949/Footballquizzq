@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.9
+        version: 1.19.9(hono@4.12.3)
       genlayer-js:
         specifier: ^0.19.0
         version: 0.19.5(eslint@9.39.3)

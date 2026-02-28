@@ -1,11 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { quizData, getQuestions, leagues, popularPlayers } from './data/questions'
-import {
-  runCategoryQuizContract,
-  runFootballChatContract,
-  runPlayerQuizContract
-} from './genlayer'
 
 type Bindings = {
   OPENAI_API_KEY?: string
@@ -16,6 +11,10 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 const DEFAULT_GENLAYER_CONTRACT = '0x688AA322f581Db6677aa06B80c04C66Bc72E1102'
+
+async function loadGenLayerModule() {
+  return import('./genlayer')
+}
 
 function getGenLayerConfig(c: any) {
   const processEnv =
@@ -88,6 +87,7 @@ app.post('/api/ai/chat', async (c) => {
       return c.json({ error: 'VITE_GENLAYER_KEY is required for contract calls.' }, 500)
     }
 
+    const { runFootballChatContract } = await loadGenLayerModule()
     const result = await runFootballChatContract({
       privateKey,
       contractAddress,
@@ -211,6 +211,7 @@ app.post('/api/ai/player-quiz', async (c) => {
       : 'medium'
     const countNumber = Number.isFinite(Number(count)) ? Number(count) : 5
 
+    const { runPlayerQuizContract } = await loadGenLayerModule()
     const result = await runPlayerQuizContract({
       privateKey,
       contractAddress,
@@ -262,6 +263,7 @@ app.post('/api/ai/category-quiz', async (c) => {
       : 'medium'
     const countNumber = Number.isFinite(Number(count)) ? Number(count) : 10
 
+    const { runCategoryQuizContract } = await loadGenLayerModule()
     const result = await runCategoryQuizContract({
       privateKey,
       contractAddress,

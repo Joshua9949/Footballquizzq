@@ -1,7 +1,8 @@
-# { "Depends": "py-genlayer:test" }
+# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 from genlayer import *
 import json
+
 
 class FootballIQBrain(gl.Contract):
     owner: Address
@@ -13,7 +14,6 @@ class FootballIQBrain(gl.Contract):
     last_quiz_json: TreeMap[Address, str]
 
     def __init__(self):
-        # Correct attribute is sender_address [3]
         self.owner = gl.message.sender_address
         self.model_name = "gpt-5-mini"
         self.system_prompt = (
@@ -89,8 +89,7 @@ class FootballIQBrain(gl.Contract):
             raise gl.Rollback("message_too_long")
 
         history_text = self._normalize_history(history_json)
-        
-        # Local variables capture state for the non-deterministic block [5]
+
         m_name = self.model_name
         s_prompt = self.system_prompt
 
@@ -110,7 +109,7 @@ class FootballIQBrain(gl.Contract):
         )
 
         raw = gl.eq_principle.prompt_non_comparative(
-            lambda: gl.nondet.exec_prompt(prompt),
+            lambda: prompt,
             task="Generate football assistant chat response",
             criteria=(
                 "Output must be valid JSON with keys reply/topic/confidence. "
@@ -134,7 +133,7 @@ class FootballIQBrain(gl.Contract):
             "confidence": confidence,
         }
         result = json.dumps(normalized, separators=(",", ":"), ensure_ascii=True)
-        
+
         sender = gl.message.sender_address
         self.last_chat_json[sender] = result
         self._bump_requests()
@@ -148,7 +147,7 @@ class FootballIQBrain(gl.Contract):
         diff = self._normalize_difficulty(difficulty)
         count_i = self._validate_count(count)
         result = self._generate_quiz("player", player, diff, count_i)
-        
+
         sender = gl.message.sender_address
         self.last_quiz_json[sender] = result
         self._bump_requests()
@@ -159,7 +158,7 @@ class FootballIQBrain(gl.Contract):
         cat = category.strip().lower()
         if cat == "":
             raise gl.Rollback("empty_category")
-        
+
         supported = (
             "premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1",
             "primeira_liga", "eredivisie", "belgian_pro", "mls", "super_lig",
@@ -171,14 +170,13 @@ class FootballIQBrain(gl.Contract):
         diff = self._normalize_difficulty(difficulty)
         count_i = self._validate_count(count)
         result = self._generate_quiz("category", cat, diff, count_i)
-        
+
         sender = gl.message.sender_address
         self.last_quiz_json[sender] = result
         self._bump_requests()
         return result
 
     def _generate_quiz(self, subject_kind: str, subject_value: str, difficulty: str, count_i: int) -> str:
-        # String state variables are captured directly, no copy_to_memory needed [5]
         m_name = self.model_name
         s_prompt = self.system_prompt
 
@@ -186,15 +184,15 @@ class FootballIQBrain(gl.Contract):
             "Return ONLY pure JSON. No markdown. No code fences. No explanations outside JSON.\n"
             "Required JSON schema:\n"
             "{"
-            "\"subject_kind\":\"string\"," 
-            "\"subject_value\":\"string\"," 
-            "\"difficulty\":\"easy|medium|hard\"," 
+            "\"subject_kind\":\"string\","
+            "\"subject_value\":\"string\","
+            "\"difficulty\":\"easy|medium|hard\","
             "\"questions\":["
             "{"
-            "\"id\":\"q1\"," 
-            "\"question\":\"string\"," 
+            "\"id\":\"q1\","
+            "\"question\":\"string\","
             "\"options\":[\"string\",\"string\",\"string\",\"string\"],"
-            "\"answer\":\"string\"," 
+            "\"answer\":\"string\","
             "\"explanation\":\"string\""
             "}"
             "]"
@@ -212,7 +210,7 @@ class FootballIQBrain(gl.Contract):
         )
 
         raw = gl.eq_principle.prompt_non_comparative(
-            lambda: gl.nondet.exec_prompt(prompt),
+            lambda: prompt,
             task="Generate football quiz JSON",
             criteria=(
                 "Must produce valid JSON matching schema with exact question count, "
@@ -251,15 +249,22 @@ class FootballIQBrain(gl.Contract):
             explanation = str(q.get("explanation", "")).strip()
             options = q.get("options")
 
-            if qid == "": raise gl.Rollback("empty_question_id")
-            if question == "": raise gl.Rollback("empty_question_text")
-            if not isinstance(options, list): raise gl.Rollback("invalid_options_type")
-            if len(options) != 4: raise gl.Rollback("invalid_options_count")
+            if qid == "":
+                raise gl.Rollback("empty_question_id")
+            if question == "":
+                raise gl.Rollback("empty_question_text")
+            if not isinstance(options, list):
+                raise gl.Rollback("invalid_options_type")
+            if len(options) != 4:
+                raise gl.Rollback("invalid_options_count")
 
             opts = [str(o).strip() for o in options]
-            if any(o == "" for o in opts): raise gl.Rollback("empty_option")
-            if len(set(opts)) != 4: raise gl.Rollback("duplicate_options")
-            if answer == "" or answer not in opts: raise gl.Rollback("invalid_answer")
+            if any(o == "" for o in opts):
+                raise gl.Rollback("empty_option")
+            if len(set(opts)) != 4:
+                raise gl.Rollback("duplicate_options")
+            if answer == "" or answer not in opts:
+                raise gl.Rollback("invalid_answer")
 
             cleaned.append({
                 "id": qid,
@@ -279,7 +284,6 @@ class FootballIQBrain(gl.Contract):
 
     def _parse_json_object(self, raw: str, rollback_code: str) -> dict:
         try:
-            # Clean possible markdown artifacts common in LLM outputs [6]
             clean_raw = raw.replace("```json", "").replace("```", "").strip()
             obj = json.loads(clean_raw)
         except Exception:
@@ -298,11 +302,14 @@ class FootballIQBrain(gl.Contract):
 
         compact = []
         for item in history[-10:]:
-            if not isinstance(item, dict): continue
+            if not isinstance(item, dict):
+                continue
             role = str(item.get("role", "user")).strip().lower()
-            if role not in ("user", "assistant", "system"): role = "user"
+            if role not in ("user", "assistant", "system"):
+                role = "user"
             content = str(item.get("content", "")).strip()
-            if content == "": continue
+            if content == "":
+                continue
             compact.append({"role": role, "content": content[:600]})
         return json.dumps(compact, separators=(",", ":"), ensure_ascii=True)
 
@@ -315,8 +322,10 @@ class FootballIQBrain(gl.Contract):
     def _validate_count(self, count: u32) -> int:
         count_i = int(count)
         max_q = int(self.max_questions)
-        if count_i < 1: raise gl.Rollback("count_too_small")
-        if count_i > max_q: raise gl.Rollback("count_too_large")
+        if count_i < 1:
+            raise gl.Rollback("count_too_small")
+        if count_i > max_q:
+            raise gl.Rollback("count_too_large")
         return count_i
 
     def _bump_requests(self):
